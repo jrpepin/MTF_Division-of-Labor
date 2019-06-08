@@ -86,33 +86,33 @@ miss <- na.omit(miss)
 
 # Figure 1. Young Adults' Expectations of the Division of Work and Family Labor in their Future Families 
 
-## Create the average variables
+## Create the average variables (weighted)
 mtf_avg <- data %>%
   group_by(year) %>%
-  summarize(hfw0_n = mean(hfw0 == "NOT AT ALL ACCEPTABLE"),
-            hfwh_n = mean(hfwh == "NOT AT ALL ACCEPTABLE"),
-            hfwf_n = mean(hfwf == "NOT AT ALL ACCEPTABLE"),
-            hhwh_n = mean(hhwh == "NOT AT ALL ACCEPTABLE"),
-            hhwf_n = mean(hhwf == "NOT AT ALL ACCEPTABLE"),
-            h0wf_n = mean(h0wf == "NOT AT ALL ACCEPTABLE"),
-            hfw0_s = mean(hfw0 == "SOMEWHAT ACCEPTABLE"),
-            hfwh_s = mean(hfwh == "SOMEWHAT ACCEPTABLE"),
-            hfwf_s = mean(hfwf == "SOMEWHAT ACCEPTABLE"),
-            hhwh_s = mean(hhwh == "SOMEWHAT ACCEPTABLE"),
-            hhwf_s = mean(hhwf == "SOMEWHAT ACCEPTABLE"),
-            h0wf_s = mean(h0wf == "SOMEWHAT ACCEPTABLE"),
-            hfw0_a = mean(hfw0 == "ACCEPTABLE"),
-            hfwh_a = mean(hfwh == "ACCEPTABLE"),
-            hfwf_a = mean(hfwf == "ACCEPTABLE"),
-            hhwh_a = mean(hhwh == "ACCEPTABLE"),
-            hhwf_a = mean(hhwf == "ACCEPTABLE"),
-            h0wf_a = mean(h0wf == "ACCEPTABLE"),
-            hfw0_d = mean(hfw0 == "DESIRABLE"),
-            hfwh_d = mean(hfwh == "DESIRABLE"),
-            hfwf_d = mean(hfwf == "DESIRABLE"),
-            hhwh_d = mean(hhwh == "DESIRABLE"),
-            hhwf_d = mean(hhwf == "DESIRABLE"),
-            h0wf_d = mean(h0wf == "DESIRABLE"))
+  summarize(hfw0_n = weighted.mean(hfw0 == "NOT AT ALL ACCEPTABLE", weight),
+            hfwh_n = weighted.mean(hfwh == "NOT AT ALL ACCEPTABLE", weight),
+            hfwf_n = weighted.mean(hfwf == "NOT AT ALL ACCEPTABLE", weight),
+            hhwh_n = weighted.mean(hhwh == "NOT AT ALL ACCEPTABLE", weight),
+            hhwf_n = weighted.mean(hhwf == "NOT AT ALL ACCEPTABLE", weight),
+            h0wf_n = weighted.mean(h0wf == "NOT AT ALL ACCEPTABLE", weight),
+            hfw0_s = weighted.mean(hfw0 == "SOMEWHAT ACCEPTABLE", weight),
+            hfwh_s = weighted.mean(hfwh == "SOMEWHAT ACCEPTABLE", weight),
+            hfwf_s = weighted.mean(hfwf == "SOMEWHAT ACCEPTABLE", weight),
+            hhwh_s = weighted.mean(hhwh == "SOMEWHAT ACCEPTABLE", weight),
+            hhwf_s = weighted.mean(hhwf == "SOMEWHAT ACCEPTABLE", weight),
+            h0wf_s = weighted.mean(h0wf == "SOMEWHAT ACCEPTABLE", weight),
+            hfw0_a = weighted.mean(hfw0 == "ACCEPTABLE", weight),
+            hfwh_a = weighted.mean(hfwh == "ACCEPTABLE", weight),
+            hfwf_a = weighted.mean(hfwf == "ACCEPTABLE", weight),
+            hhwh_a = weighted.mean(hhwh == "ACCEPTABLE", weight),
+            hhwf_a = weighted.mean(hhwf == "ACCEPTABLE", weight),
+            h0wf_a = weighted.mean(h0wf == "ACCEPTABLE", weight),
+            hfw0_d = weighted.mean(hfw0 == "DESIRABLE", weight),
+            hfwh_d = weighted.mean(hfwh == "DESIRABLE", weight),
+            hfwf_d = weighted.mean(hfwf == "DESIRABLE", weight),
+            hhwh_d = weighted.mean(hhwh == "DESIRABLE", weight),
+            hhwf_d = weighted.mean(hhwf == "DESIRABLE", weight),
+            h0wf_d = weighted.mean(h0wf == "DESIRABLE", weight))
 
 tidy <- mtf_avg %>%
   gather(dol, avg, 2:25, -year) %>%
@@ -178,6 +178,8 @@ m3 <- multinom(hfwf ~ year * racesex + momed + momemp + famstru + religion + reg
 m4 <- multinom(hhwh ~ year * racesex + momed + momemp + famstru + religion + region, data, weights = weight)
 m5 <- multinom(h0wf ~ year * racesex + momed + momemp + famstru + religion + region, data, weights = weight)
 m6 <- multinom(hhwf ~ year * racesex + momed + momemp + famstru + religion + region, data, weights = weight)
+
+m1svy   <- svymultinom(hfw0 ~ year * racesex + momed + momemp + famstru + religion + region, design= dataSvy)
 
 ## Ouput the data to pretty html files (for GitHub repo.)
 ### https://www.princeton.edu/~otorres/NiceOutputR.pdf
