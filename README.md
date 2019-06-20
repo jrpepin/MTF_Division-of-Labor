@@ -1,2 +1,4 @@
 # MTF_Division-of-Labor
-Young Adults' Expectations of the Division of Labor in their Future Families
+ECONOMIC PRECARITY AND THE GENDER REVOLUTION: 
+YOUNG ADULTS’ DIVISION OF LABOR IN THEIR FUTURE FAMILIES
+
