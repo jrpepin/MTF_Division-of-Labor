@@ -74,8 +74,8 @@ write.csv(meddata, "figures/dol_Figure B.csv")
 ## Figure B
 figB <- meddata %>%
   ggplot(aes(year, predicted, color = group, label = round(predicted, 1))) +
-  geom_line(aes(linetype = group), size =1) +
-  facet_grid(~ level ~ dol) +
+  geom_smooth(method = "loess", span = 0.5, se = FALSE, size=1.2) + 
+    facet_grid(~ level ~ dol) +
   scale_linetype_manual(values=c("solid", "twodash", "longdash", "dotted", "dashed"))+
   theme_minimal() +
   scale_x_continuous(name = "", breaks = c(1976, 2014), label = c("'76", "'14")) +
@@ -101,7 +101,7 @@ figB
 ggsave("figures/dol_figure B.png", figB, width = 24, height = 16, units = "cm", dpi = 300)
 
 ## Appendix -- Education
-mn_edu <- multinom(class ~ year * momed + racesex + momemp + famstru + religion + region, data = dat)
+mn_edu <- multinom(class ~ year * momed + racesex + momemp + famstru + religion + region, data = dat, weights = weight, MaxNWts =10000000)
 
 eduodds <- coef(mn_edu)
 write.csv(eduodds, "mn_edu.csv")
@@ -111,11 +111,18 @@ pmnedu <- (1 - pnorm(abs(zmnedu), 0, 1)) * 2
 write.csv(pmnedu, "pmn_edu.csv")
 
 
-lcaedu <- ggpredict(mn_edu, terms = c("year[1976:2014]", "momed"))
+lcaedu <- ggeffect(mn_edu, terms = c("year[1976:2014]", "momed"))
 
 colnames(lcaedu)[colnames(lcaedu) == 'response.level'] <- 'class'
 
 lcaedu$class   <- as.factor(lcaedu$class)
+
+levels(lcaedu$class)[levels(lcaedu$class)=="Conventional"]          <- "Conventional"
+levels(lcaedu$class)[levels(lcaedu$class)=="Conventional.Realists"] <- "Conventional Realists"
+levels(lcaedu$class)[levels(lcaedu$class)=="Dual.earners"]          <- "Dual-earners"
+levels(lcaedu$class)[levels(lcaedu$class)=="Intensive.Parents"]     <- "Intensive Parents"
+levels(lcaedu$class)[levels(lcaedu$class)=="Neo.traditional"]       <- "Neo-traditional"
+
 lcaedu$class <- factor(lcaedu$class, levels = c("Conventional", "Neo-traditional", "Conventional Realists", 
                                               "Dual-earners", "Intensive Parents"))
 
@@ -127,13 +134,11 @@ levels(lcaedu$group)[levels(lcaedu$group)=="GRADUATE OR PROFESSIONAL SCHOOL AFTE
 lcaedu$group <- factor(lcaedu$group, levels = c("< HIGH SCHOOL", "HIGH SCHOOL", "SOME COLLEGE", 
                                                 "COLLEGE", "COLLEGE +"))
 
-
 write.csv(lcaedu, "figures/dol_Figure C.csv")
 
-
 ## Figure C
-figC <- ggplot(lcaedu) + 
-  geom_line(aes(x = x, y = predicted, colour = group), size=1.5) + 
+figC <- ggplot(lcaedu, aes(x = x, y = predicted, colour = group)) + 
+  geom_smooth(method = "loess", span = 0.5, se = FALSE, size=1.2) + 
   facet_wrap(~ class) +
   theme_minimal() +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
@@ -154,5 +159,7 @@ figC <- ggplot(lcaedu) +
     panel.spacing= unit(1.5, "lines")) +
   scale_x_discrete(limits=c(1976, 2014), label = c("'76", "'14")) +
   labs(x = "", y = "Predicted Probability of Class Membership \n")
+
+figC
 
 ggsave("figures/dol_figure C.png", figC, width = 16.5, height = 14, units = "cm", dpi = 300)

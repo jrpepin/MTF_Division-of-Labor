@@ -72,7 +72,7 @@ mardata$group <- factor(mardata$group, levels = c("WILL EVENTUALLY MARRY", "NOT 
 setwd("C:/Users/Joanna/Dropbox/Dernberger/Division of Labor/Figures")
 write.csv(mardata, "dol_Figure D.csv")
 
-figE <- mardata %>%
+figD <- mardata %>%
   filter(level != "SOMEWHAT\n ACCEPTABLE" & 
            (dol   == "Husband full-time;\n Wife at home" | dol == "Both work full-time" | dol == "Husband at home;\n Wife full-time")) %>%
   ggplot(aes(x, predicted, color = group, label = round(predicted, 1))) +
@@ -98,9 +98,9 @@ figE <- mardata %>%
   scale_y_continuous(breaks = NULL) +
   geom_hline(yintercept = .5, color = "grey90")
 
-figE
+figD
 
-ggsave("dol_figure E.png", figE, width = 18, height = 14, units = "cm", dpi = 300)
+ggsave("dol_figure D.png", figD, width = 18, height = 14, units = "cm", dpi = 300)
 
 
 
@@ -137,10 +137,10 @@ setwd("C:/Users/Joanna/Dropbox/Dernberger/Division of Labor/Figures")
 write.csv(lcamar, "dol_Figure F.csv")
 
 
-## Figure F
+## Figure E
 library(ggplot2)
 
-figF <- ggplot(lcamar) + 
+figE <- ggplot(lcamar) + 
   geom_line(aes(x = x, y = predicted, colour = group), size=1.5) + 
   facet_wrap(~ class) +
   theme_minimal() +
@@ -163,4 +163,4 @@ figF <- ggplot(lcamar) +
   scale_x_discrete(limits=c(1976, 2014), label = c("'76", "'14")) +
   labs(x = "", y = "Predicted Probability of Class Membership \n")
 
-ggsave("dol_figure F.png", figF, width = 16.5, height = 14, units = "cm", dpi = 300)
+ggsave("dol_figure E.png", figE, width = 16.5, height = 14, units = "cm", dpi = 300)

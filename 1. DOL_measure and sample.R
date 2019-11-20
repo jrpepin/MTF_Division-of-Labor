@@ -196,7 +196,7 @@ data <- data %>%
       TRUE                                ~  NA_character_))
 
 data$racesex <- as_factor(data$racesex)
-data$racesex <- factor(data$racesex, levels = c("White men", "White women", "Black men", "Black women"), ordered = TRUE) 
+data$racesex <- factor(data$racesex, levels = c("White men", "White women", "Black men", "Black women"), ordered = FALSE) 
 
 ## Mothers' Education
 data <- data %>%
@@ -223,7 +223,7 @@ data$momed[data$momed == "COMPLETED GRADE SCHOOL OR LESS"] <- "LESS THAN HIGH SC
 data$momed[data$momed == "SOME HIGH SCHOOL"]               <- "LESS THAN HIGH SCHOOL"
 
 data$momed <- factor(data$momed, levels = c("LESS THAN HIGH SCHOOL", "COMPLETED HIGH SCHOOL", "SOME COLLEGE", 
-                                            "COMPLETED COLLEGE", "GRADUATE OR PROFESSIONAL SCHOOL AFTER COLLEGE"), ordered = TRUE) 
+                                            "COMPLETED COLLEGE", "GRADUATE OR PROFESSIONAL SCHOOL AFTER COLLEGE"), ordered = FALSE) 
 
 ## Mothers' Employment
 data <- data %>%
@@ -240,7 +240,7 @@ data <- data %>%
       TRUE        ~  NA_character_ ))
 
 data$momemp <- factor(data$momemp, levels = c("NO, NOT EMPLOYED", "YES, SOME OF THE TIME WHEN I WAS GROWING UP", 
-                                              "YES, MOST OF THE TIME", "YES, ALL OR NEARLY ALL OF THE TIME"), ordered = TRUE) 
+                                              "YES, MOST OF THE TIME", "YES, ALL OR NEARLY ALL OF THE TIME"), ordered = FALSE) 
 
 ## Family Structure
 data <- data %>%
@@ -272,7 +272,7 @@ data <- data %>%
 data$famstru <- as_factor(data$famstru)
 
 data$famstru <- factor(data$famstru, levels = c("Both Mother & Father", "Mother Only", 
-                                                "Father Only", "Neither Mother/Father"), ordered = TRUE) 
+                                                "Father Only", "Neither Mother/Father"), ordered = FALSE) 
 
 ## Religiosity
 data <- data %>%
@@ -289,7 +289,7 @@ data <- data %>%
       TRUE        ~  NA_character_ ))
 
 data$religion <- factor(data$religion, levels = c("NEVER", "RARELY", 
-                                                  "ONCE OR TWICE A MONTH", "ABOUT ONCE A WEEK OR MORE"), ordered = TRUE) 
+                                                  "ONCE OR TWICE A MONTH", "ABOUT ONCE A WEEK OR MORE"), ordered = FALSE) 
 
 ## Region
 data <- data %>%
@@ -301,7 +301,7 @@ data <- data %>%
       region   == 4 | region == "W"  | region == "W:(4)"  | region == "WEST"          | region == "WEST:(4)"           ~ "West",
       TRUE                                                                                                             ~  NA_character_ ))
 
-data$region <- factor(data$region, levels = c("Northeast", "North Central", "South", "West"), ordered = TRUE) 
+data$region <- factor(data$region, levels = c("Northeast", "North Central", "South", "West"), ordered = FALSE) 
 
 ## Get Married
 ## For sensitivity test, assign missing level
@@ -319,7 +319,7 @@ data <- data %>%
       TRUE        ~  "MISSING"))
 
 data$getmar <- factor(data$getmar, levels = c("GETTING MARRIED", "NOT GETTING MARRIED", "I HAVE NO IDEA", 
-                                              "AM ALREADY MARRIED", "MISSING"), ordered = TRUE) 
+                                              "AM ALREADY MARRIED", "MISSING"), ordered = FALSE) 
 
 #####################################################################################
 # Select Sample

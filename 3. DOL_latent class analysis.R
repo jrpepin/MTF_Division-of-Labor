@@ -17,7 +17,6 @@ f<-with(data, cbind(hfw0, hfwh, hfwf, hhwh, hhwf, h0wf)~1)
 
 # models with different number of groups without covariates:
 
-set.seed(01012) # Try to make the classes come out in the same order each time -- they still don't
  lc1<-poLCA(f, data=data, nclass=1, na.rm = FALSE, nrep=30, maxiter=100000) # Loglinear independence model.
  lc2<-poLCA(f, data=data, nclass=2, na.rm = FALSE, nrep=30, maxiter=100000)
  lc3<-poLCA(f, data=data, nclass=3, na.rm = FALSE, nrep=30, maxiter=100000)
@@ -26,10 +25,6 @@ set.seed(01012) # Try to make the classes come out in the same order each time -
  lc6<-poLCA(f, data=data, nclass=6, na.rm = FALSE, nrep=30, maxiter=100000) # The chosen model
  lc7<-poLCA(f, data=data, nclass=7, na.rm = FALSE, nrep=30, maxiter=100000)
  lc8<-poLCA(f, data=data, nclass=8, na.rm = FALSE, nrep=30, maxiter=100000)
-
-## Testing if controlling for year makes a difference
- t<-with(data, cbind(hfw0, hfwh, hfwf, hhwh, hhwf, h0wf)~year)
- lc6t<-poLCA(t, data=data, nclass=3, na.rm = FALSE, nrep=30, maxiter=100000) 
 
 ## Creating Test statistics to compare models
  results <- data.frame(Model=c("Model 1"),
@@ -177,11 +172,11 @@ lcModelProbs$L1 <- as.factor(lcModelProbs$L1)
 
 levels(lcModelProbs$L1)[levels(lcModelProbs$L1)=="hfw0"] <- "H FT \nW Home"
 levels(lcModelProbs$L1)[levels(lcModelProbs$L1)=="hfwh"] <- "H FT \nW PT"
-levels(lcModelProbs$L1)[levels(lcModelProbs$L1)=="hfwf"] <- "Both FT"
-levels(lcModelProbs$L1)[levels(lcModelProbs$L1)=="hhwh"] <- "Both PT"
+levels(lcModelProbs$L1)[levels(lcModelProbs$L1)=="hfwf"] <- "Both \nFT"
+levels(lcModelProbs$L1)[levels(lcModelProbs$L1)=="hhwh"] <- "Both \nPT"
 levels(lcModelProbs$L1)[levels(lcModelProbs$L1)=="h0wf"] <- "H Home \nW FT"
 levels(lcModelProbs$L1)[levels(lcModelProbs$L1)=="hhwf"] <- "H PT \nW FT"
-lcModelProbs$L1 <- ordered(lcModelProbs$L1, levels =c("H FT \nW Home", "H FT \nW PT", "Both FT", "Both PT", "H Home \nW FT", "H PT \nW FT"))
+lcModelProbs$L1 <- ordered(lcModelProbs$L1, levels =c("H FT \nW Home", "H FT \nW PT", "Both \nFT", "Both \nPT", "H Home \nW FT", "H PT \nW FT"))
 
 levels(lcModelProbs$Var2)[levels(lcModelProbs$Var2)=="NOT AT ALL ACCEPTABLE"] <- "Not Acceptable"
 levels(lcModelProbs$Var2)[levels(lcModelProbs$Var2)=="SOMEWHAT ACCEPTABLE"] <- "Somewhat Acceptable"
@@ -195,23 +190,23 @@ lcModelProbs$value <- round(lcModelProbs$value, 3)
 # The classes come out in random order every time....... Use proporitons to identify the classes
 round(prop.table(table(lc6$predclass)),4)*100
 
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 1: "] <- "Conventional" # 26% 
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 2: "] <- "Conventional Realists" # 23%
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 3: "] <- "Intensive Parents" # 15%
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 4: "] <- "Dual-earners" # 12% 
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 5: "] <- "Neo-traditional" # 21% 
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 1: "] <- "Dual-earners" # 12%   
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 2: "] <- "Conventional" # 26%
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 3: "] <- "Conventional Realists" # 23%  
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 4: "] <- "Intensive Parents" # 15%
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 5: "] <- "Neo-traditional" # 21%
 levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 6: "] <- "Strong Intensive Parents" # 3%
 lcModelProbs$Var1 <- factor(lcModelProbs$Var1, levels = c("Conventional", "Neo-traditional", "Conventional Realists", 
                                           "Dual-earners", "Intensive Parents", "Strong Intensive Parents"))
 
 write.csv(lcModelProbs, "figures/dol_Figure 3.csv")
 
-# Figure 3 -- 6 latent classes
+# Figure 2 latent classes
 
-fig3 <- ggplot(lcModelProbs, aes(x = L1, y = value, fill = Var2)) +
+fig2 <- ggplot(lcModelProbs, aes(x = L1, y = value, fill = Var2)) +
   geom_bar(stat = "identity", position = "stack") +
   facet_wrap(~ Var1, ncol = 3) + 
-  scale_fill_manual(values=c("#e7298a", "#7570b3", "#d95f02", "#1b9e77"), name = "") +
+  scale_fill_manual(values=c("#f27777", "#efa937", "#07d3ba", "#6399ab"), name = "") +
   theme_minimal() +
   theme(
     strip.text.x  = element_text(size = 11, face="bold"),
@@ -223,9 +218,9 @@ fig3 <- ggplot(lcModelProbs, aes(x = L1, y = value, fill = Var2)) +
     panel.grid.minor     = element_blank(),
     panel.grid.major.x   = element_blank()) +
   labs(x = "", y = "")
-fig3
+fig2
 
-ggsave("figures/dol_figure 3.png", fig3, width = 24, height = 16, units = "cm", dpi = 300)
+ggsave("figures/dol_figure 2.png", figLC, width = 24, height = 16, units = "cm", dpi = 300)
 
 ### Multinomial LCA
 
@@ -251,16 +246,15 @@ classes <- c("C1", "C2", "C3", "C4", "C5", "C6")
 dat$class <- max.col(dat[classes], "first") #tie breakers go to first class
 dat$class <- as.factor(dat$class)
 
-#Rename classes -- same order as above
-levels(dat$class)[levels(dat$class)=="1"] <- "Neo-traditional"
-levels(dat$class)[levels(dat$class)=="2"] <- "Conventional Realists"
-levels(dat$class)[levels(dat$class)=="3"] <- "Intensive Parents"
-levels(dat$class)[levels(dat$class)=="4"] <- "Conventional" 
-levels(dat$class)[levels(dat$class)=="5"] <- "Intensive Parents"
-levels(dat$class)[levels(dat$class)=="6"] <- "Dual-earners"
+#Rename classes -- same order as above -- combine Intensive Parents!
+levels(dat$class)[levels(dat$class)=="1"] <- "Dual-earners"
+levels(dat$class)[levels(dat$class)=="2"] <- "Conventional"
+levels(dat$class)[levels(dat$class)=="3"] <- "Conventional Realists"
+levels(dat$class)[levels(dat$class)=="4"] <- "Intensive Parents" 
+levels(dat$class)[levels(dat$class)=="5"] <- "Neo-traditional"
+levels(dat$class)[levels(dat$class)=="6"] <- "Intensive Parents"
 dat$class <- factor(dat$class, levels = c("Conventional", "Neo-traditional", "Conventional Realists", 
                                           "Dual-earners", "Intensive Parents"))
-
 
 ## LCA Multinomial Logit
 
@@ -274,23 +268,32 @@ pmn <- (1 - pnorm(abs(zmn), 0, 1)) * 2
 write.csv(pmn, "data/pmn.csv")
 
 
-lcapp <- ggpredict(mn, terms = c("year[1976:2014]", "racesex"))
+lcapp <- ggeffect(mn, terms = c("year[1976:2014]", "racesex"))
 
 colnames(lcapp)[colnames(lcapp) == 'response.level'] <- 'class'
+lcapp$class <- as_factor(lcapp$class)
+
+levels(lcapp$class)[levels(lcapp$class)=="Conventional"]          <- "Conventional"
+levels(lcapp$class)[levels(lcapp$class)=="Conventional.Realists"] <- "Conventional Realists"
+levels(lcapp$class)[levels(lcapp$class)=="Dual.earners"]          <- "Dual-earners"
+levels(lcapp$class)[levels(lcapp$class)=="Intensive.Parents"]     <- "Intensive Parents"
+levels(lcapp$class)[levels(lcapp$class)=="Neo.traditional"]       <- "Neo-traditional"
 
 lcapp$class <- factor(lcapp$class, levels = c("Conventional", "Neo-traditional", "Conventional Realists", 
                                           "Dual-earners", "Intensive Parents"))
 
-write.csv(lcapp, "figures/dol_Figure 4.csv")
+write.csv(lcapp, "figures/dol_Figure 3.csv")
 
 
-## Figure 4
+## Figure 3
 
-fig4 <- ggplot(lcapp) + 
-  geom_line(aes(x = x, y = predicted, colour = group), size=1.2) + 
+fig3 <- ggplot(lcapp, aes(x = x, y = predicted, colour = group, ymin = conf.low, ymax = conf.high)) + 
+  geom_smooth(method = "loess", span = 0.5, se = FALSE, size=1.2) + 
   facet_wrap(~ class) +
   theme_minimal() +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), 
+                     limits = c(0, 1),
+                     breaks = c(0, .25, .5, .75)) +
   scale_colour_manual(values=c("#fdb863", "#e66101", "#b2abd2", "#5e3c99"), name = "Race & Gender") +
   theme_minimal() +
   theme(
@@ -309,6 +312,6 @@ fig4 <- ggplot(lcapp) +
   scale_x_discrete(limits=c(1976, 2014), label = c("'76", "'14")) +
   labs(x = "", y = "Predicted Probability of Class Membership \n")
 
-fig4
+fig3
 
-ggsave("figures/dol_figure 4.png", fig4, width = 16.5, height = 14, units = "cm", dpi = 300)
+ggsave("figures/dol_figure 3.png", fig3, width = 16.5, height = 14, units = "cm", dpi = 300)
