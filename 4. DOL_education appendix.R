@@ -104,11 +104,11 @@ ggsave("figures/dol_figure B.png", figB, width = 24, height = 16, units = "cm", 
 mn_edu <- multinom(class ~ year * momed + racesex + momemp + famstru + religion + region, data = dat, weights = weight, MaxNWts =10000000)
 
 eduodds <- coef(mn_edu)
-write.csv(eduodds, "mn_edu.csv")
+write.csv(eduodds, "data/mn_edu.csv")
 
 zmnedu <- summary(mn_edu)$coefficients/summary(mn_edu)$standard.errors
 pmnedu <- (1 - pnorm(abs(zmnedu), 0, 1)) * 2
-write.csv(pmnedu, "pmn_edu.csv")
+write.csv(pmnedu, "data/pmn_edu.csv")
 
 
 lcaedu <- ggeffect(mn_edu, terms = c("year[1976:2014]", "momed"))
