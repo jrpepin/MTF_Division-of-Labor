@@ -27,7 +27,7 @@ f<-with(data, cbind(hfw0, hfwh, hfwf, hhwh, hhwf, h0wf)~1)
  lc8<-poLCA(f, data=data, nclass=8, na.rm = FALSE, nrep=30, maxiter=100000)
 
 ## Creating Test statistics to compare models
- results <- data.frame(Model=c("Model 1"),
+ results <- data.frame(k_classes=c("1"),
                        log_likelihood=lc1$llik,
                        df = lc1$resid.df,
                        BIC=lc1$bic,
@@ -35,15 +35,15 @@ f<-with(data, cbind(hfw0, hfwh, hfwf, hhwh, hhwf, h0wf)~1)
                        CAIC = (-2*lc1$llik) + lc1$npar * (1 + log(lc1$N)), 
                        likelihood_ratio=lc1$Gsq)
  
- results$Model<-as.integer(results$Model)
- results[1,1]<-c("Model 1")
- results[2,1]<-c("Model 2")
- results[3,1]<-c("Model 3")
- results[4,1]<-c("Model 4")
- results[5,1]<-c("Model 5")
- results[6,1]<-c("Model 6")
- results[7,1]<-c("Model 7")
- results[8,1]<-c("Model 8")
+ results$k_classes<-as.integer(results$k_classes)
+ results[1,1]<-c("1")
+ results[2,1]<-c("2")
+ results[3,1]<-c("3")
+ results[4,1]<-c("4")
+ results[5,1]<-c("5")
+ results[6,1]<-c("6")
+ results[7,1]<-c("7")
+ results[8,1]<-c("8")
  
  results[2,2]<-lc2$llik
  results[3,2]<-lc3$llik
@@ -94,7 +94,20 @@ f<-with(data, cbind(hfw0, hfwh, hfwf, hhwh, hhwf, h0wf)~1)
  results[8,7]<-lc8$Gsq
  
 #  calculate the Entropy (a pseudo-r-squared)
- entropy<-function (p) sum(-p*log(p))
+ # MIT license
+ # Author: Daniel Oberski
+ # Input: result of a poLCA model fit
+ # Output: entropy R^2 statistic (Vermunt & Magidson, 2013, p. 71)
+ # See: daob.nl/wp-content/uploads/2015/07/ESRA-course-slides.pdf
+ # And: https://www.statisticalinnovations.com/wp-content/uploads/LGtecnical.pdf
+ # And: https://gist.github.com/daob/c2b6d83815ddd57cde3cebfdc2c267b3
+ 
+machine_tolerance <- sqrt(.Machine$double.eps)
+ 
+entropy <- function(p) {
+   p <- p[p > machine_tolerance] # since Lim_{p->0} p log(p) = 0
+   sum(-p * log(p))
+ }
  
  results$R2_entropy
  results[1,8]<-c("-")
@@ -126,27 +139,43 @@ f<-with(data, cbind(hfw0, hfwh, hfwf, hhwh, hhwf, h0wf)~1)
  error_prior<-entropy(lc8$P) #  class proportions model 8
  error_post<-mean(apply(lc8$posterior,1, entropy),na.rm = TRUE)
  results[8,8]<-round(((error_prior-error_post) / error_prior),3)
-
+ 
+ # BIC % change ((2-1)/1)*100
+ results[1,9]<-c("-")
+ results[2,9]<- round(((lc2$bic -lc1$bic)/lc1$bic) * 100 ,3)
+ results[3,9]<- round(((lc3$bic -lc2$bic)/lc2$bic) * 100 ,3)
+ results[4,9]<- round(((lc4$bic -lc3$bic)/lc3$bic) * 100 ,3)
+ results[5,9]<- round(((lc5$bic -lc4$bic)/lc4$bic) * 100 ,3)
+ results[6,9]<- round(((lc6$bic -lc5$bic)/lc5$bic) * 100 ,3)
+ results[7,9]<- round(((lc7$bic -lc6$bic)/lc6$bic) * 100 ,3)
+ results[8,9]<- round(((lc8$bic -lc7$bic)/lc7$bic) * 100 ,3)
+ 
 #  combining results to a dataframe
- colnames(results)<-c("Model","log-likelihood","resid. df","BIC","aBIC","cAIC","likelihood-ratio","Entropy")
+ colnames(results)<-c("k_classes","log-likelihood","resid. df","BIC","aBIC","cAIC","likelihood-ratio","Entropy", "BIC % Change")
  lca_results<-results
 # 
 # # Review results
 ztable::ztable(lca_results)
+
+setwd(outDir)
+write_csv(lca_results, "Table 2.csv")
+setwd(repoDir)
+
 # 
 # ## Plot of LCA model comparison statistics
 # # Order categories of results$model in order of appearance
 
-results$Model <- as_factor(results$Model) 
+results$k_classes <- as_factor(results$k_classes)
+
 # 
 # #convert to long format
-results2<-tidyr::gather(results,Kriterium,Guete,4:7)
+results2<-tidyr::gather(results,Kriterium,Guete,c("BIC", "cAIC", "likelihood-ratio"))
 results2
 # 
 # #plot
 fit.plot<-ggplot(results2) + 
-   geom_point(aes(x=Model,y=Guete),size=3) +
-   geom_line(aes(Model, Guete, group = 1)) +
+   geom_point(aes(x=k_classes,y=Guete),size=3) +
+   geom_line(aes(k_classes, Guete, group = 1)) +
    theme_bw()+
    labs(x = "", y="", title = "") + 
    facet_grid(Kriterium ~. ,scales = "free") +
@@ -158,7 +187,7 @@ fit.plot<-ggplot(results2) +
          axis.title         = element_text(size = 11),
          legend.text        = element_text(size = 11),
          axis.line          = element_line(colour = "black"))
-
+fit.plot
 ggsave("figures/dol_figure A.png", fit.plot, width = 16, height = 12, units = "cm", dpi = 300)
 
 ### Analysis of chosen LCA model -- 6 classes
@@ -190,16 +219,19 @@ lcModelProbs$value <- round(lcModelProbs$value, 3)
 # The classes come out in random order every time....... Use proporitons to identify the classes
 round(prop.table(table(lc6$predclass)),4)*100
 
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 1: "] <- "Dual-earners" # 12%   
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 2: "] <- "Conventional" # 26%
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 3: "] <- "Conventional Realists" # 23%  
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 4: "] <- "Intensive Parents" # 15%
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 5: "] <- "Neo-traditional" # 21%
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 6: "] <- "Strong Intensive Parents" # 3%
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 1: "] <- "Neo-traditional" # 21%    
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 2: "] <- "Dual-earners" # 12% 
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 3: "] <- "Intensive Parents" # 15%   
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 4: "] <- "Strong Intensive Parents" # 3%
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 5: "] <- "Conventional Realists" # 23%
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 6: "] <- "Conventional" # 26%
 lcModelProbs$Var1 <- factor(lcModelProbs$Var1, levels = c("Conventional", "Neo-traditional", "Conventional Realists", 
                                           "Dual-earners", "Intensive Parents", "Strong Intensive Parents"))
 
-write.csv(lcModelProbs, "figures/dol_Figure 3.csv")
+write.csv(lcModelProbs, "figures/dol_Figure 2.csv")
+
+# # If want to start from saved output file.
+lcModelProbs <-  read.csv("figures/dol_Figure 2.csv", header = TRUE)
 
 # Figure 2 latent classes
 
