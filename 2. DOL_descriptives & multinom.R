@@ -177,21 +177,21 @@ fig1 <- mdata %>%
   facet_wrap( ~ level, ncol = 1) +
   geom_linerange(show.legend=FALSE, color = "grey") +
   geom_line(size = 1) +
-  geom_text_repel(aes(label = dol),
+  geom_text_repel(aes(label = dol), # This plots the dol labels on the right side without overlap.
                   data           = subset(mdata, level != "SOMEWHAT ACCEPTABLE" & year == 2014), # Only plot the labels 1 time
                   segment.colour = NA,
-                  nudge_x        =  2018 - subset(mdata, level != "SOMEWHAT ACCEPTABLE" &  year == 2014)$year,
+                  nudge_x        = 2018 - subset(mdata, level != "SOMEWHAT ACCEPTABLE" &  year == 2014)$year,
                   direction      = "y",
                   hjust          = 0,
-                  size          = 3) +
-  geom_text_repel(aes(label = last_value),
+                  size           = 3) +
+  geom_text_repel(aes(label = last_value), # THis plots the 2014 proportions in line with the dol labels.
                   data           = subset(mdata, level != "SOMEWHAT ACCEPTABLE" &  year == 2014), # Only plot the labels 1 time
                   segment.colour = NA,
-                  nudge_x        =  2015 - subset(mdata,  level != "SOMEWHAT ACCEPTABLE" & year == 2014)$year,
+                  nudge_x        = 2015 - subset(mdata,  level != "SOMEWHAT ACCEPTABLE" & year == 2014)$year,
                   direction      = "y",
                   hjust          = 0,
-                  size          = 3) +
-  geom_dl(aes(label=first_value), method = list('first.bumpup', cex = .75)) +
+                  size           = 3) +
+  geom_dl(aes(label=first_value), method = list('first.bumpup', cex = .75)) + #This plots the 1976 proportions.
   coord_cartesian(xlim = c(1976, 2035), # This extendes the x-axis to make room for the dol labels.
                   ylim = c(0, 1),
                   clip = 'off') +   # This keeps the labels from disappearing
