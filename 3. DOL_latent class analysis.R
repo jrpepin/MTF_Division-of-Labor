@@ -10,7 +10,10 @@ library("nnet")
 library("ggplot2")
 library("ggeffects")
 
-## Create the LCA models
+##########################################################################################
+# A. Conduct the LCA
+##########################################################################################
+## A1. Create the LCA models
 
 # define function
 f<-with(data, cbind(hfw0, hfwh, hfwf, hhwh, hhwf, h0wf)~1) 
@@ -26,7 +29,9 @@ f<-with(data, cbind(hfw0, hfwh, hfwf, hhwh, hhwf, h0wf)~1)
  lc7<-poLCA(f, data=data, nclass=7, na.rm = FALSE, nrep=30, maxiter=100000)
  lc8<-poLCA(f, data=data, nclass=8, na.rm = FALSE, nrep=30, maxiter=100000)
 
-## Creating Test statistics to compare models
+##########################################################################################
+## A2. Create fit statistics to compare models
+
  results <- data.frame(k_classes=c("1"),
                        log_likelihood=lc1$llik,
                        df = lc1$resid.df,
@@ -161,17 +166,15 @@ setwd(outDir)
 write_csv(lca_results, "Table 2.csv")
 setwd(repoDir)
 
-# 
 # ## Plot of LCA model comparison statistics
 # # Order categories of results$model in order of appearance
 
 results$k_classes <- as_factor(results$k_classes)
 
-# 
 # #convert to long format
 results2<-tidyr::gather(results,Kriterium,Guete,c("BIC", "cAIC", "likelihood-ratio"))
 results2
-# 
+
 # #plot
 fit.plot<-ggplot(results2) + 
    geom_point(aes(x=k_classes,y=Guete),size=3) +
@@ -190,8 +193,10 @@ fit.plot<-ggplot(results2) +
 fit.plot
 ggsave("figures/dol_figure A.png", fit.plot, width = 16, height = 12, units = "cm", dpi = 300)
 
-### Analysis of chosen LCA model -- 6 classes
-## Proportion of people in each class
+##########################################################################################
+## A3. Analysis of chosen LCA model -- 6 classes
+
+### Proportion of people in each class
 round(prop.table(table(lc6$predclass)),4)*100
 
 ## Compare classes with graphs
@@ -205,35 +210,40 @@ levels(lcModelProbs$L1)[levels(lcModelProbs$L1)=="hfwf"] <- "Both \nFT"
 levels(lcModelProbs$L1)[levels(lcModelProbs$L1)=="hhwh"] <- "Both \nPT"
 levels(lcModelProbs$L1)[levels(lcModelProbs$L1)=="h0wf"] <- "H Home \nW FT"
 levels(lcModelProbs$L1)[levels(lcModelProbs$L1)=="hhwf"] <- "H PT \nW FT"
-lcModelProbs$L1 <- ordered(lcModelProbs$L1, levels =c("H FT \nW Home", "H FT \nW PT", "Both \nFT", "Both \nPT", "H Home \nW FT", "H PT \nW FT"))
 
 levels(lcModelProbs$Var2)[levels(lcModelProbs$Var2)=="NOT AT ALL ACCEPTABLE"] <- "Not Acceptable"
 levels(lcModelProbs$Var2)[levels(lcModelProbs$Var2)=="SOMEWHAT ACCEPTABLE"] <- "Somewhat Acceptable"
 levels(lcModelProbs$Var2)[levels(lcModelProbs$Var2)=="ACCEPTABLE"] <- "Acceptable"  
 levels(lcModelProbs$Var2)[levels(lcModelProbs$Var2)=="DESIRABLE"] <- "Desirable"
 
-lcModelProbs$Var2 <- ordered(lcModelProbs$Var2,  levels = c("Not Acceptable", "Somewhat Acceptable", "Acceptable", "Desirable"))
-
 lcModelProbs$value <- round(lcModelProbs$value, 3)
 
 # The classes come out in random order every time....... Use proporitons to identify the classes
 round(prop.table(table(lc6$predclass)),4)*100
 
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 1: "] <- "Neo-traditional" # 21%    
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 2: "] <- "Dual-earners" # 12% 
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 3: "] <- "Intensive Parents" # 15%   
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 4: "] <- "Strong Intensive Parents" # 3%
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 5: "] <- "Conventional Realists" # 23%
-levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 6: "] <- "Conventional" # 26%
-lcModelProbs$Var1 <- factor(lcModelProbs$Var1, levels = c("Conventional", "Neo-traditional", "Conventional Realists", 
-                                          "Dual-earners", "Intensive Parents", "Strong Intensive Parents"))
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 1: "] <- "Neo-traditional (21%)" # 21%    
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 2: "] <- "Dual-earners (12%)" # 12% 
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 3: "] <- "Intensive Parents (15%)" # 15%   
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 4: "] <- "Strong Intensive Parents (3%)" # 3%
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 5: "] <- "Conventional Realists (23%)" # 23%
+levels(lcModelProbs$Var1)[levels(lcModelProbs$Var1)=="class 6: "] <- "Conventional (26%)" # 26%
 
+## Save the data file
 write.csv(lcModelProbs, "figures/dol_Figure 2.csv")
 
-# # If want to start from saved output file.
+## If want to start from saved output file.
 lcModelProbs <-  read.csv("figures/dol_Figure 2.csv", header = TRUE)
 
-# Figure 2 latent classes
+#########################################################################################
+# A4. Figure 2 -- Latent Classes
+
+## Order the classes, levels, and dol arrangements
+lcModelProbs$Var1 <- factor(lcModelProbs$Var1, levels = c("Conventional (26%)", "Neo-traditional (21%)", "Conventional Realists (23%)", 
+                                                          "Dual-earners (12%)", "Intensive Parents (15%)", "Strong Intensive Parents (3%)"))
+
+lcModelProbs$Var2 <- ordered(lcModelProbs$Var2,  levels = c("Not Acceptable", "Somewhat Acceptable", "Acceptable", "Desirable"))
+
+lcModelProbs$L1 <- ordered(lcModelProbs$L1, levels =c("H FT \nW Home", "H FT \nW PT", "Both \nFT", "Both \nPT", "H Home \nW FT", "H PT \nW FT"))
 
 fig2 <- ggplot(lcModelProbs, aes(x = L1, y = value, fill = Var2)) +
   geom_bar(stat = "identity", position = "stack") +
@@ -252,11 +262,14 @@ fig2 <- ggplot(lcModelProbs, aes(x = L1, y = value, fill = Var2)) +
   labs(x = "", y = "")
 fig2
 
-ggsave("figures/dol_figure 2.png", figLC, width = 24, height = 16, units = "cm", dpi = 300)
+ggsave("figures/dol_figure 2.png", fig2, width = 24, height = 16, units = "cm", dpi = 300)
 
-### Multinomial LCA
+##########################################################################################
+# B. Multinomial Analysis of LCA
+##########################################################################################
+## B1. Combine LCA class data with respondent demographic data
 
-# Getting probabilities
+# Add probabilities to demo data
 dat <- cbind(data, lc6$posterior)
 dat$"1" <- round(dat$"1", 2)
 dat$"2" <- round(dat$"2", 2)
@@ -273,23 +286,99 @@ colnames(dat)[colnames(dat) == '4'] <- 'C4'
 colnames(dat)[colnames(dat) == '5'] <- 'C5'
 colnames(dat)[colnames(dat) == '6'] <- 'C6'
 
-
 classes <- c("C1", "C2", "C3", "C4", "C5", "C6")
 dat$class <- max.col(dat[classes], "first") #tie breakers go to first class
 dat$class <- as.factor(dat$class)
 
 #Rename classes -- same order as above -- combine Intensive Parents!
-levels(dat$class)[levels(dat$class)=="1"] <- "Dual-earners"
-levels(dat$class)[levels(dat$class)=="2"] <- "Conventional"
-levels(dat$class)[levels(dat$class)=="3"] <- "Conventional Realists"
-levels(dat$class)[levels(dat$class)=="4"] <- "Intensive Parents" 
-levels(dat$class)[levels(dat$class)=="5"] <- "Neo-traditional"
-levels(dat$class)[levels(dat$class)=="6"] <- "Intensive Parents"
+levels(dat$class)[levels(dat$class)=="1"] <- "Neo-traditional" 
+levels(dat$class)[levels(dat$class)=="2"] <- "Dual-earners" 
+levels(dat$class)[levels(dat$class)=="3"] <- "Intensive Parents" 
+levels(dat$class)[levels(dat$class)=="4"] <- "Intensive Parents"
+levels(dat$class)[levels(dat$class)=="5"] <- "Conventional Realists"
+levels(dat$class)[levels(dat$class)=="6"] <- "Conventional"
 dat$class <- factor(dat$class, levels = c("Conventional", "Neo-traditional", "Conventional Realists", 
                                           "Dual-earners", "Intensive Parents"))
 
-## LCA Multinomial Logit
+dat$year <- as.factor(dat$year)
+#########################################################################################
+## B2. LCA Multinomial Logit (total sample pooled)
 
+mn_all <- multinom(class ~ year + racesex + momed + momemp + famstru + religion + region, data = dat, weights = weight)
+
+lcapp <- ggeffect(mn_all, terms = c("year"))
+
+colnames(lcapp)[colnames(lcapp) == 'response.level'] <- 'class'
+lcapp$class <- as.factor(lcapp$class)
+
+levels(lcapp$class)[levels(lcapp$class)=="Conventional.Realists"] <- "Conventional Realists"
+levels(lcapp$class)[levels(lcapp$class)=="Dual.earners"]          <- "Dual-earners"
+levels(lcapp$class)[levels(lcapp$class)=="Intensive.Parents"]     <- "Intensive Parents"
+levels(lcapp$class)[levels(lcapp$class)=="Neo.traditional"]       <- "Neo-traditional"
+
+lcapp$class <- factor(lcapp$class, levels = c("Conventional", "Neo-traditional", "Conventional Realists", 
+                                              "Dual-earners", "Intensive Parents"))
+## Save the data as a csv file.
+write.csv(lcapp, "figures/dol_figure C.csv")
+
+## If want to start from saved output file.
+lcapp <-  read.csv("figures/dol_Figure C.csv", header = TRUE)
+
+#########################################################################################
+## B3. Appendix Figure C
+lcapp <- lcapp %>%
+  group_by(class) %>%
+  mutate(last_value = last(scales::percent(predicted, accuracy =  1))) 
+
+lcapp <- lcapp %>%
+  group_by(class) %>%
+  mutate(first_value = first(scales::percent(predicted, accuracy =  1))) 
+
+figC <- ggplot(lcapp, aes(x = x, y = predicted, color = class, ymin = conf.low, ymax = conf.high)) + 
+  geom_linerange(show.legend=FALSE, color = "grey90") +
+  geom_line(size=1.2) + 
+  geom_text_repel(aes(label = class), # This plots the dol labels on the right side without overlap.
+                  data           = subset(lcapp, x == "2014"), # Only plot the labels 1 time
+                  segment.colour = NA,
+                  nudge_x        = 2018 - subset(lcapp, x == "2014")$x,
+                  direction      = "y",
+                  hjust          = 0,
+                  size           = 4) +
+  geom_text_repel(aes(label = last_value), # THis plots the 2014 proportions in line with the dol labels.
+                  data           = subset(lcapp, x == "2014"), # Only plot the labels 1 time
+                  segment.colour = NA,
+                  nudge_x        = 2015 - subset(lcapp, x == "2014")$x,
+                  direction      = "y",
+                  hjust          = 0,
+                  size           = 3) +
+  geom_dl(aes(label=first_value), method = list('first.bumpup', cex = .75)) +
+  coord_cartesian(xlim = c(1976, 2035), # This extendes the x-axis to make room for the dol labels.
+                  ylim = c(0, .60),
+                  clip = 'off') +   # This keeps the labels from disappearing
+  geom_segment(aes(x=1976, xend=2014, y=0,   yend=0),   color = "grey90") +
+  geom_segment(aes(x=1976, xend=2014, y=.25, yend=.25), color = "grey90") +
+  geom_segment(aes(x=1976, xend=2014, y=.5,  yend=.5),  color = "grey90") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), 
+                     breaks = c(0, .25, .5)) +
+  scale_x_continuous(breaks=c(1976, 2014), label = c("'76", "'14")) +
+  theme_minimal() +
+    theme(
+    text                 = element_text(size=12),
+    strip.text.x         = element_text(face="bold"),
+    plot.title           = element_text(face = "bold"),
+    legend.position      = "none",
+    legend.title         = element_text(face = "bold"),
+    panel.grid.minor     = element_blank(),
+    panel.grid.major     = element_blank(),
+    plot.margin          = unit(c(.25,.25,1,1), "cm")) +
+  labs(x = "", y = "")
+
+figC
+
+ggsave("figures/dol_figure C.png", figC, height = 7, width = 8, dpi = 300)
+
+##########################################################################################
+## B4. LCA Multinomial Logit (Year & Race/Sex interaction)
 mn <- multinom(class ~ year * racesex + momed + momemp + famstru + religion + region, data = dat, weights = weight)
 
 mnodds <- coef(mn)
@@ -298,7 +387,6 @@ write.csv(mnodds, "data/mn.csv")
 zmn <- summary(mn)$coefficients/summary(mn)$standard.errors
 pmn <- (1 - pnorm(abs(zmn), 0, 1)) * 2
 write.csv(pmn, "data/pmn.csv")
-
 
 lcapp <- ggeffect(mn, terms = c("year[1976:2014]", "racesex"))
 
@@ -311,13 +399,16 @@ levels(lcapp$class)[levels(lcapp$class)=="Dual.earners"]          <- "Dual-earne
 levels(lcapp$class)[levels(lcapp$class)=="Intensive.Parents"]     <- "Intensive Parents"
 levels(lcapp$class)[levels(lcapp$class)=="Neo.traditional"]       <- "Neo-traditional"
 
-lcapp$class <- factor(lcapp$class, levels = c("Conventional", "Neo-traditional", "Conventional Realists", 
-                                          "Dual-earners", "Intensive Parents"))
-
 write.csv(lcapp, "figures/dol_Figure 3.csv")
 
+# # If want to start from saved output file.
+lcapp <-  read.csv("figures/dol_Figure 3.csv", header = TRUE)
 
-## Figure 3
+#########################################################################################
+## B5. Figure 3 -- LCA by Race/Sex * Year
+
+lcapp$class <- factor(lcapp$class, levels = c("Conventional", "Neo-traditional", "Conventional Realists", 
+                                              "Dual-earners", "Intensive Parents"))
 
 fig3 <- ggplot(lcapp, aes(x = x, y = predicted, colour = group, ymin = conf.low, ymax = conf.high)) + 
   geom_smooth(method = "loess", span = 0.5, se = FALSE, size=1.2) + 
