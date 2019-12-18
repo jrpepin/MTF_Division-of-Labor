@@ -3,3 +3,4 @@
 *.gz
 *.Rhistory
 presentation/
+*.RData
