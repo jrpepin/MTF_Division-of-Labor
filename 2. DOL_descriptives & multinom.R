@@ -126,19 +126,22 @@ head(mdata)
 ## save dataset
 write.csv(mdata, "figures/dol_Figure 1.csv")
 
+# # If want to start from saved probability file.
+mdata <-  read.csv("figures/dol_Figure 1.csv", header = TRUE)
+
 ## Prep dataset for graphing
 
 ### Readable labels for DOL
 mdata$dol <- as.factor(mdata$dol)
-levels(mdata$dol)[levels(mdata$dol)=="hfw0"] <- "Husband full-time;\n Wife at home"
-levels(mdata$dol)[levels(mdata$dol)=="hfwh"] <- "Husband full-time;\n Wife part-time"
+levels(mdata$dol)[levels(mdata$dol)=="hfw0"] <- "Husband full-time; Wife at home"
+levels(mdata$dol)[levels(mdata$dol)=="hfwh"] <- "Husband full-time; Wife part-time"
 levels(mdata$dol)[levels(mdata$dol)=="hfwf"] <- "Both work full-time"
 levels(mdata$dol)[levels(mdata$dol)=="hhwh"] <- "Both work part-time"
-levels(mdata$dol)[levels(mdata$dol)=="hhwf"] <- "Husband part-time;\n Wife full-time"
-levels(mdata$dol)[levels(mdata$dol)=="h0wf"] <- "Husband at home;\n Wife full-time"
+levels(mdata$dol)[levels(mdata$dol)=="hhwf"] <- "Husband part-time; Wife full-time"
+levels(mdata$dol)[levels(mdata$dol)=="h0wf"] <- "Husband at home; Wife full-time"
 
-mdata$dol    <- ordered(mdata$dol,   levels = c("Husband full-time;\n Wife at home", "Both work full-time", "Husband at home;\n Wife full-time",
-                                                "Husband full-time;\n Wife part-time", "Both work part-time", "Husband part-time;\n Wife full-time"))
+mdata$dol    <- ordered(mdata$dol,   levels = c("Husband full-time; Wife at home", "Husband full-time; Wife part-time", "Both work full-time", 
+                                                 "Both work part-time", "Husband part-time; Wife full-time", "Husband at home; Wife full-time"))
 ### Order the levels
 colnames(mdata)[colnames(mdata)=="response.level"]                <- "level"
 mdata$level                                                       <- as_factor(mdata$level)
@@ -153,12 +156,12 @@ colnames(mdata)[colnames(mdata)=="x"] <- "year"
 mdata <- mdata %>%
   mutate(
     type = case_when(
-      dol == "Husband full-time;\n Wife at home" |
-      dol == "Husband full-time;\n Wife part-time"  ~ "TRADITIONAL",
+      dol == "Husband full-time; Wife at home" |
+      dol == "Husband full-time; Wife part-time"    ~ "TRADITIONAL",
       dol == "Both work full-time"               |
       dol == "Both work part-time"                  ~ "MATCHED",
-      dol == "Husband at home;\n Wife full-time" |
-      dol == "Husband part-time;\n Wife full-time"  ~ "GENDER ATYPICAL",     
+      dol == "Husband at home; Wife full-time" |
+      dol == "Husband part-time; Wife full-time"    ~ "GENDER ATYPICAL",     
       TRUE                                          ~  NA_character_ ))
 
 ### Create values for beginning and end points
@@ -168,36 +171,54 @@ mdata <- mdata %>%
          first_value = first(scales::percent(predicted, accuracy =  1))) 
 
 ## Make figure 1
-fig1 <- ggplot(mdata,
-               aes(year, predicted, color = level, label = round(predicted, 1),
-                   ymin = conf.low, ymax = conf.high)) +
-  facet_wrap(~dol) +
+fig1 <- mdata %>%
+  filter(level != "SOMEWHAT ACCEPTABLE") %>%
+  ggplot(aes(year, predicted, color = dol, ymin = conf.low, ymax = conf.high)) +
+  facet_wrap( ~ level, ncol = 1) +
   geom_linerange(show.legend=FALSE, color = "grey") +
   geom_line(size = 1) +
+  geom_text_repel(aes(label = dol),
+                  data           = subset(mdata, level != "SOMEWHAT ACCEPTABLE" & year == 2014), # Only plot the labels 1 time
+                  segment.colour = NA,
+                  nudge_x        =  2018 - subset(mdata, level != "SOMEWHAT ACCEPTABLE" &  year == 2014)$year,
+                  direction      = "y",
+                  hjust          = 0,
+                  size          = 3) +
+  geom_text_repel(aes(label = last_value),
+                  data           = subset(mdata, level != "SOMEWHAT ACCEPTABLE" &  year == 2014), # Only plot the labels 1 time
+                  segment.colour = NA,
+                  nudge_x        =  2015 - subset(mdata,  level != "SOMEWHAT ACCEPTABLE" & year == 2014)$year,
+                  direction      = "y",
+                  hjust          = 0,
+                  size          = 3) +
+  geom_dl(aes(label=first_value), method = list('first.bumpup', cex = .75)) +
+  coord_cartesian(xlim = c(1976, 2035), # This extendes the x-axis to make room for the dol labels.
+                  ylim = c(0, 1),
+                  clip = 'off') +   # This keeps the labels from disappearing
+  geom_segment(aes(x=1976,xend=2014,y=0,yend=0),   color = "grey90") +
+  geom_segment(aes(x=1976,xend=2014,y=.5,yend=.5), color = "grey90") +
+  geom_segment(aes(x=1976,xend=2014,y=1,yend=1),   color = "grey90") +
+  geom_vline(xintercept = c(1976, 1995, 2014),     color = "grey90") +
+  scale_x_continuous(name = "", 
+                     breaks   = c(1976, 1995, 2014), 
+                     label    = c("1976", "1995", "2014"), 
+                     position = "top") +
+  scale_y_continuous(labels   = scales::percent_format(accuracy = 1), breaks = NULL) +
   theme_minimal() +
-  ggtitle("\n") +
-  scale_x_continuous(name = "", breaks = c(1976, 2014), label = c("'76", "'14")) +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1), breaks = c(.5), limits = c(0, 1)) +
   theme(text             = element_text(size=12),
-        legend.position  = "bottom",
         legend.title     = element_blank(),
+        strip.text.x     = element_text(angle = 0, face="bold", hjust = 0),
+        legend.position  = "none",
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        panel.spacing.x  = unit(10, "lines"),
-        panel.spacing.y  = unit(1, "lines")) +
+        strip.placement  = "outside", 
+        plot.margin = unit(c(.25,.5,1,1), "cm")) +
   labs(x = " ", y = " ", fill = "") +
-  scale_color_brewer(palette="Dark2") +
-  geom_hline(yintercept = .5,   color = "grey90") +
-  geom_vline(xintercept = 1995, color = "grey90")
-
-
-fig1 <- ggdraw(fig1) + draw_label("Traditional",     x = 0.15, y = 0.95, fontface='bold', size = 12)
-fig1 <- ggdraw(fig1) + draw_label("Matched",         x = 0.53, y = 0.95, fontface='bold', size = 12)
-fig1 <- ggdraw(fig1) + draw_label("Gender Atypical", x = 0.91, y = 0.95, fontface='bold', size = 12)
+  scale_colour_manual(values=c("#07d3ba", "#0392cf", "#f27777", "#efa937", "#e7298a", "#7570b3"))
 
 fig1
 
-ggsave("figures/dol_figure 1.png", fig1, width = 9, height = 5, dpi = 300)
+ggsave("figures/dol_figure 1.png", fig1, height = 10, width = 8, dpi = 300)
 
 #####################################################################
 # Appendix Table C -- MULTINOMIALS
@@ -209,7 +230,7 @@ stargazer(m1, m2, type="html", star.cutoffs = c(0.05, 0.01, 0.001), digits = 2, 
 stargazer(m3, m4, type="html", star.cutoffs = c(0.05, 0.01, 0.001), digits = 2, style = "asr", initial.zero = FALSE, out="data/mods3-4.html")
 stargazer(m5, m6, type="html", star.cutoffs = c(0.05, 0.01, 0.001), digits = 2, style = "asr", initial.zero = FALSE, out="data/mods5-6.html")
 
-### Create csv files to copy/paste data into Excel tables for paper submission
+### Create csv files to copy/paste data into Excel tables for paper
 setwd(file.path(outDir)) # Set the working-directory to the sub-folder where we will save the data output
 
 # Model 1
@@ -259,76 +280,3 @@ write.csv(m6odds, "m6.csv")
 z6 <- summary(m6)$coefficients/summary(m6)$standard.errors
 p6 <- (1 - pnorm(abs(z6), 0, 1)) * 2
 write.csv(p6, "p6.csv")
-
-
-# Create Figure 2
-setwd(file.path(repoDir)) # Set the working-directory to the respository
-
-## Create predicted probilities datesets
-
-pm1   <- ggeffect(m1, terms = c("year[1976:2014]", "racesex"))
-pm2   <- ggeffect(m2, terms = c("year[1976:2014]", "racesex"))
-pm3   <- ggeffect(m3, terms = c("year[1976:2014]", "racesex"))
-pm4   <- ggeffect(m4, terms = c("year[1976:2014]", "racesex"))
-pm5   <- ggeffect(m5, terms = c("year[1976:2014]", "racesex"))
-pm6   <- ggeffect(m6, terms = c("year[1976:2014]", "racesex"))
-
-pm1$dol <- "hfw0"
-pm2$dol <- "hfwh"
-pm3$dol <- "hfwf"
-pm4$dol <- "hhwh"
-pm5$dol <- "h0wf"
-pm6$dol <- "hhwf"
-
-mdata = smartbind(pm1, pm2, pm3, pm4, pm5, pm6)
-head(mdata)
-
-mdata$dol <- as.factor(mdata$dol)
-levels(mdata$dol)[levels(mdata$dol)=="hfw0"] <- "Husband full-time;\n Wife at home"
-levels(mdata$dol)[levels(mdata$dol)=="hfwh"] <- "Husband full-time;\n Wife part-time"
-levels(mdata$dol)[levels(mdata$dol)=="hfwf"] <- "Both work full-time"
-levels(mdata$dol)[levels(mdata$dol)=="hhwh"] <- "Both work part-time"
-levels(mdata$dol)[levels(mdata$dol)=="hhwf"] <- "Husband part-time;\n Wife full-time"
-levels(mdata$dol)[levels(mdata$dol)=="h0wf"] <- "Husband at home;\n Wife full-time"
-
-mdata$dol    <- ordered(mdata$dol,   levels = c("Husband full-time;\n Wife at home", "Husband full-time;\n Wife part-time", "Both work full-time", 
-                                                "Both work part-time", "Husband at home;\n Wife full-time", "Husband part-time;\n Wife full-time"))
-
-colnames(mdata)[colnames(mdata)=="response.level"] <- "level"
-mdata$level <- as_factor(mdata$level, ordered = TRUE)
-levels(mdata$level)[levels(mdata$level)=="NOT.AT.ALL.ACCEPTABLE"] <- "NOT AT ALL\n ACCEPTABLE"
-levels(mdata$level)[levels(mdata$level)=="SOMEWHAT.ACCEPTABLE"] <- "SOMEWHAT\n ACCEPTABLE"
-
-mdata$level <- ordered(mdata$level, levels = c("DESIRABLE", "ACCEPTABLE", "SOMEWHAT\n ACCEPTABLE",  "NOT AT ALL\n ACCEPTABLE"))
-
-mdata$group <- ordered(mdata$group, levels = c("White men", "White women", "Black men", "Black women"))
-
-colnames(mdata)[colnames(mdata)=="x"] <- "year"
-
-write.csv(mdata, "figures/dol_Figure 2.csv")
-
-figAC <- mdata %>%
-  ggplot(aes(year, predicted, color = group, label = round(predicted, 1))) +
-  geom_line(aes(linetype = group), size =1) +
-  facet_grid(~ level ~ dol) +
-  scale_linetype_manual(values=c("solid", "twodash", "longdash", "dotted"))+
-  theme_minimal() +
-  scale_x_continuous(name = "", breaks = c(1976, 2014), label = c("'76", "'14")) +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1), breaks = c(0, .25, .5, .75)) +
-  theme(axis.text.x      = element_text(size = 9),
-        strip.text.x     = element_text(size = 8, face = "bold"),
-        strip.text.y     = element_text(size = 9, face = "bold"),
-        axis.title       = element_text(size = 9), 
-        axis.text        = element_text(size = 9), 
-        legend.position  = 'top',
-        legend.title=element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border     = element_blank(),
-        panel.spacing = unit(1.25, "lines")) +
-  labs(x = " ", y = "\n", fill = "") +
-  scale_color_manual(values=c("#fdb863", "#e66101", "#b2abd2", "#5e3c99")) +
-  geom_hline(yintercept = .5,   color = "grey90") +
-  geom_vline(xintercept = 1995, color = "grey90")
-
-figAC
