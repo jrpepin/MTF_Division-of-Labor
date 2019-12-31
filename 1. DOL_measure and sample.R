@@ -30,7 +30,6 @@ setwd(repoDir) # This will set the working directory to the master project folde
 load(paste0(dataDir, "/mtf_form2.Rda"))
 
 ## Load the libraries
-library(haven)
 library(tidyverse)
 
 #####################################################################################
