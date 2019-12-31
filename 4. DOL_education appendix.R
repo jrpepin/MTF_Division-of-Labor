@@ -8,6 +8,9 @@ library(gtools)
 library(ggeffects)
 library(ggplot2)
 
+#########################################################################################
+## Appendix Figure B
+
 ## Create the multinomial models with interactions
 med1 <- multinom(hfw0 ~ year * momed + racesex + momemp + famstru + religion + region, data, weights = weight)
 med2 <- multinom(hfwh ~ year * momed + racesex + momemp + famstru + religion + region, data, weights = weight)
@@ -100,7 +103,9 @@ figB
 
 ggsave("figures/dol_figure B.png", figB, width = 24, height = 16, units = "cm", dpi = 300)
 
-## Appendix -- Education
+#########################################################################################
+## Appendix Figure D -- LCA by momed
+
 mn_edu <- multinom(class ~ year * momed + racesex + momemp + famstru + religion + region, data = dat, weights = weight, MaxNWts =10000000)
 
 eduodds <- coef(mn_edu)
@@ -109,7 +114,6 @@ write.csv(eduodds, "data/mn_edu.csv")
 zmnedu <- summary(mn_edu)$coefficients/summary(mn_edu)$standard.errors
 pmnedu <- (1 - pnorm(abs(zmnedu), 0, 1)) * 2
 write.csv(pmnedu, "data/pmn_edu.csv")
-
 
 lcaedu <- ggeffect(mn_edu, terms = c("year[1976:2014]", "momed"))
 
@@ -121,10 +125,7 @@ levels(lcaedu$class)[levels(lcaedu$class)=="Conventional"]          <- "Conventi
 levels(lcaedu$class)[levels(lcaedu$class)=="Conventional.Realists"] <- "Conventional Realists"
 levels(lcaedu$class)[levels(lcaedu$class)=="Dual.earners"]          <- "Dual-earners"
 levels(lcaedu$class)[levels(lcaedu$class)=="Intensive.Parents"]     <- "Intensive Parents"
-levels(lcaedu$class)[levels(lcaedu$class)=="Neo.traditional"]       <- "Neo-traditional"
-
-lcaedu$class <- factor(lcaedu$class, levels = c("Conventional", "Neo-traditional", "Conventional Realists", 
-                                              "Dual-earners", "Intensive Parents"))
+levels(lcaedu$class)[levels(lcaedu$class)=="Neo.traditional"]       <- "Neotraditional"
 
 levels(lcaedu$group)[levels(lcaedu$group)=="LESS THAN HIGH SCHOOL"]                         <- "< HIGH SCHOOL"
 levels(lcaedu$group)[levels(lcaedu$group)=="COMPLETED HIGH SCHOOL"]                         <- "HIGH SCHOOL"
@@ -134,10 +135,16 @@ levels(lcaedu$group)[levels(lcaedu$group)=="GRADUATE OR PROFESSIONAL SCHOOL AFTE
 lcaedu$group <- factor(lcaedu$group, levels = c("< HIGH SCHOOL", "HIGH SCHOOL", "SOME COLLEGE", 
                                                 "COLLEGE", "COLLEGE +"))
 
-write.csv(lcaedu, "figures/dol_Figure C.csv")
+write.csv(lcaedu, "figures/dol_Figure D.csv")
 
-## Figure C
-figC <- ggplot(lcaedu, aes(x = x, y = predicted, colour = group)) + 
+## If want to start from saved output file.
+lcaedu <-  read.csv("figures/dol_Figure D.csv", header = TRUE)
+
+lcaedu$class <- factor(lcaedu$class, levels = c("Conventional", "Neotraditional", "Conventional Realists", 
+                                                "Dual-earners", "Intensive Parents"))
+
+## Figure D
+figD <- ggplot(lcaedu, aes(x = x, y = predicted, colour = group)) + 
   geom_smooth(method = "loess", span = 0.5, se = FALSE, size=1.2) + 
   facet_wrap(~ class) +
   theme_minimal() +
@@ -157,9 +164,9 @@ figC <- ggplot(lcaedu, aes(x = x, y = predicted, colour = group)) +
     panel.grid.major.x = element_blank(),
     plot.margin=unit(c(.5,1,.5,1),"cm"),
     panel.spacing= unit(1.5, "lines")) +
-  scale_x_discrete(limits=c(1976, 2014), label = c("'76", "'14")) +
+  scale_x_discrete(limits=c(1976, 2014), label = c("1976", "2014")) +
   labs(x = "", y = "Predicted Probability of Class Membership \n")
 
-figC
+figD
 
-ggsave("figures/dol_figure C.png", figC, width = 16.5, height = 14, units = "cm", dpi = 300)
+ggsave("figures/dol_figure D.png", figD, width = 16.5, height = 14, units = "cm", dpi = 300)
